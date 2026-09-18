@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import { soundEngine } from '../../audio/SoundEngine';
 import { PASSENGER_STORIES, STATIONS } from '../../game/constants';
+import { circularTrackDistance } from '../../game/runtime/route';
 import { WorldRenderer } from '../../game/WorldRenderer';
 import type { CameraMode, GameState, WeatherPreset } from '../../types/game';
 import type { ModalName } from './useModals';
@@ -49,8 +50,8 @@ export function useGameActions(options: UseGameActionsOptions) {
 
       const currentStation = STATIONS[current.currentStationIndex];
       const nearRequestedStation =
-        currentStation.name === request.requireBellAtStation ||
-        Math.abs(current.trackPos - currentStation.u) < 0.08;
+        currentStation.name === request.requireBellAtStation &&
+        circularTrackDistance(current.trackPos, currentStation.u) < 0.06;
 
       if (!nearRequestedStation) return current;
 
@@ -200,11 +201,22 @@ export function useGameActions(options: UseGameActionsOptions) {
       soundEngine.playBell(current.audioEnabled);
 
       if (nextIndex === 0) {
-        unlockAchievement('grand_tour');
         worldRef.current?.respawnParcels();
       }
 
-      return { ...current, inStation: false, currentStationIndex: nextIndex };
+      const restedComfort = Math.min(100, current.comfort + 10);
+
+      return {
+        ...current,
+        inStation: false,
+        currentStationIndex: nextIndex,
+        comfort: restedComfort,
+        tripMinimumComfort: restedComfort,
+        tripPeakSpeed: 0,
+        smoothDrivingSeconds: 0,
+        throttle: 0,
+        stationWaitTimer: 0,
+      };
     });
   }, [closeModal, setGameState, showToast, unlockAchievement, worldRef]);
 
