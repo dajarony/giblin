@@ -17,6 +17,7 @@ import {
   calculateArrivalTips,
   calculateComfortFrame,
   calculateMotionFrame,
+  calculateTurnDirection,
   calculateTurnSeverity,
   isSmoothDrivingFrame,
   randomPassengerCount,
@@ -79,12 +80,19 @@ export function useGameLoop(options: UseGameLoopOptions) {
       const aheadTangent = world.trackCurve.getTangentAt(aheadTrackPos).normalize();
       const slopeIncline = currentTangent.y;
       const turnSeverity = calculateTurnSeverity(currentTangent.dot(aheadTangent));
+      const turnDirection = calculateTurnDirection(
+        currentTangent.x,
+        currentTangent.z,
+        aheadTangent.x,
+        aheadTangent.z,
+      );
 
       const motion = calculateMotionFrame({
         state,
         dt,
         slopeIncline,
         turnSeverity,
+        turnDirection,
         isPowerPressed: inputRef.current.w,
         isBrakePressed: inputRef.current.s,
         crosswindPhase: crosswindPhaseRef.current,
@@ -105,6 +113,10 @@ export function useGameLoop(options: UseGameLoopOptions) {
         tramTangent,
         world.tram.group.quaternion,
         time,
+        dt,
+        motion.speedKmh,
+        motion.acceleration,
+        motion.lateralForce,
       );
       world.update(dt, time);
       soundEngine.update(motion.speedKmh, tramPosition.y * 5, windForce, state.audioEnabled);
