@@ -4,18 +4,16 @@
 
 Keep the game easy to extend without turning the prototype into a monolithic React/Three.js script.
 
-The design uses a small set of explicit layers:
-
 ```text
 React UI
   │
   ▼
-Game Controller / focused hooks
-  ├── player actions
-  ├── input lifecycle
-  ├── frame loop
-  ├── modal + toast state
-  └── achievements
+useGameController
+  ├── useGameInput
+  ├── useGameActions
+  ├── useGameLoop
+  ├── useModals / useToast / useAchievements
+  └── useWorld
   │
   ├──────────────► SoundEngine
   │
@@ -36,50 +34,47 @@ WorldRenderer facade
 ## State ownership
 
 `GameState` is the gameplay source of truth. React owns it through `useGameController`.
-
-Three.js scene objects mirror that state. They must not silently become a competing state store.
+Three.js scene objects mirror state; they do not own gameplay state.
 
 Examples:
 
 - Speed belongs in `GameState`; wheel rotation belongs in `TramModel`.
-- Selected weather belongs in `GameState`; light/fog colours belong in the world layer.
-- Parcel count belongs in `GameState`; parcel meshes and visibility belong in `SkyParcelSystem`.
+- Weather selection belongs in `GameState`; fog/light colours belong in the world layer.
+- Parcel count belongs in `GameState`; parcel meshes belong in `SkyParcelSystem`.
 
 ## Main loop
 
-`useGameLoop` owns the animation-frame lifecycle and coordinates one frame:
+`useGameLoop` owns the animation-frame lifecycle. It reads the latest state through a ref, computes one coherent frame and commits one next state. The loop is not recreated on every speed or comfort change.
 
-1. Read current game/input state.
-2. Calculate motion through pure runtime functions.
-3. Update tram/world presentation.
+Frame responsibilities:
+
+1. Read input and game state.
+2. Calculate motion using pure functions.
+3. Update world/tram presentation.
 4. Calculate comfort and station events.
-5. Trigger explicit side effects (sound/toasts/achievements).
-6. Commit one coherent next `GameState`.
-
-The animation loop is registered once. It does not get recreated every time speed or comfort changes.
+5. Trigger explicit side effects.
+6. Commit one coherent `GameState`.
 
 ## Input
 
-`useGameInput` owns keyboard state and keyboard listeners. HUD buttons call the same power/brake primitives, so mouse/touch and keyboard cannot drift into separate control implementations.
+`useGameInput` owns keyboard listeners and button state. HUD buttons call the same power/brake primitives used by keyboard input.
 
 ## World facade
 
-`WorldRenderer` remains the API used by game orchestration, but specialised responsibilities are delegated:
+`WorldRenderer` is the facade used by orchestration. Specialised responsibilities are delegated:
 
-- `CameraController` — camera modes and pointer orbit controls.
+- `CameraController` — camera modes and pointer orbit lifecycle.
 - `applyWeatherPreset` — data-driven lighting/fog/ocean palettes.
 - `SkyParcelSystem` — parcel mesh lifecycle, pickup detection and animation.
 
-New world systems should follow the same pattern rather than adding more unrelated behaviour to `WorldRenderer`.
-
 ## Cleanup discipline
 
-The world exposes `dispose()` and camera/input hooks remove their own listeners. React effects must always return cleanup functions for any external resource they create.
+`WorldRenderer.dispose()` removes camera listeners, disposes Three.js resources and releases the WebGL renderer. Every React effect that creates an external resource returns a cleanup function.
 
-## Next refactor targets
+## Safe next refactors
 
-The remaining large visual files are intentionally isolated and can be split safely later without touching gameplay state:
+The remaining large visual construction files are isolated and can be split later without touching gameplay state:
 
-- `WorldRenderer`: extract scenery construction into station/island builders.
-- `TramModel`: extract body construction, paint application and upgrade visuals if it grows further.
-- `SoundEngine`: separate music sequencing from SFX synthesis if new audio systems are added.
+- Extract station/island/scenery builders from `WorldRenderer`.
+- Extract body construction, paint and upgrade visuals from `TramModel` only if they grow further.
+- Separate music sequencing from SFX synthesis in `SoundEngine` when audio content expands.

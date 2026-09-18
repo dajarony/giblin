@@ -5,7 +5,7 @@ export type WeatherPreset = 'day' | 'sunset' | 'night' | 'fog' | 'golden_morning
 export interface StationData {
   id: string;
   name: string;
-  u: number;
+  u: number; // 0.0 to 1.0 along the track spline
   desc: string;
   region: string;
   tagline: string;
@@ -72,12 +72,12 @@ export interface GameState {
   gold: number;
   passengers: number;
   maxPassengers: number;
-  comfort: number;
-  streak: number;
+  comfort: number; // 0 to 100
+  streak: number; // 1.0 to 4.0
   streakBroken: boolean;
-  speed: number;
-  throttle: number;
-  trackPos: number;
+  speed: number; // km/h
+  throttle: number; // -1 to 1
+  trackPos: number; // 0.0 to 1.0
   currentStationIndex: number;
   inStation: boolean;
   stationWaitTimer: number;

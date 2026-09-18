@@ -2,11 +2,7 @@
 
 A warm low-poly Three.js tram-driving game built with React, TypeScript and Vite.
 
-## What this repository contains
-
-The project started as a generated prototype and is being hardened into a maintainable game codebase. The current refactor keeps gameplay behaviour while separating rendering, simulation, input, UI state and player actions.
-
-## Core gameplay
+## Gameplay
 
 - Continuous scenic 3D railway through floating islands.
 - Power, braking, camera and bell controls.
@@ -16,15 +12,13 @@ The project started as a generated prototype and is being hardened into a mainta
 - Collectible sky-mail parcels, achievements and photo mode.
 - Multiple weather presets and ambient audio.
 
-## Tech stack
+## Engineering principles
 
-- React 19
-- TypeScript
-- Three.js
-- Vite
-- Tailwind CSS
+This repository follows a strict single-responsibility approach. React UI, gameplay simulation, input, Three.js rendering and audio are separated so features can evolve without turning the game into one monolithic file.
 
-## Local development
+Read [`AGENTS.md`](AGENTS.md) before making changes and [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the system map.
+
+## Development
 
 ```bash
 npm install
@@ -37,10 +31,4 @@ Quality gate:
 npm run check
 ```
 
-`npm run check` runs TypeScript validation and a production build.
-
-## Architecture
-
-Read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) before changing game behaviour.
-
-Agents and contributors should also read [`AGENTS.md`](AGENTS.md). It contains the non-negotiable coding rules for this repository.
+`npm run check` runs strict TypeScript validation and a production build.

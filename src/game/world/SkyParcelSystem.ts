@@ -10,18 +10,20 @@ export class SkyParcelSystem {
     this.build();
   }
 
-  collectAt(trackPos: number): number {
+  collectAt(trackPosition: number): number {
     let earned = 0;
+
     for (const parcel of this.parcels) {
       if (parcel.userData.collected) continue;
-      const distance = Math.abs(trackPos - parcel.userData.u);
-      const wrapsAroundTrack = parcel.userData.u > 0.98 && trackPos < 0.012;
+      const distance = Math.abs(trackPosition - parcel.userData.u);
+      const wrapsAroundTrack = parcel.userData.u > 0.98 && trackPosition < 0.012;
       if (distance >= 0.012 && !wrapsAroundTrack) continue;
 
       parcel.userData.collected = true;
       parcel.visible = false;
       earned += parcel.userData.value;
     }
+
     return earned;
   }
 
@@ -49,9 +51,8 @@ export class SkyParcelSystem {
       roughness: 0.4,
     });
     const ribbonMaterial = new THREE.MeshStandardMaterial({ color: 0xc2593f });
-    const locations = [0.18, 0.45, 0.72, 0.92, 0.26];
 
-    locations.forEach((trackPosition, id) => {
+    [0.18, 0.45, 0.72, 0.92, 0.26].forEach((trackPosition, id) => {
       const point = this.trackCurve.getPointAt(trackPosition);
       const group = new THREE.Group();
       group.position.set(point.x, point.y - 2, point.z);

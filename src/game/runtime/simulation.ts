@@ -30,30 +30,18 @@ export interface ComfortFrameResult {
 }
 
 export function calculateMotionFrame(input: MotionFrameInput): MotionFrameResult {
-  const {
-    state,
-    dt,
-    slopeIncline,
-    isPowerPressed,
-    isBrakePressed,
-  } = input;
+  const { state, dt, slopeIncline, isPowerPressed, isBrakePressed } = input;
 
   let acceleration = 0;
   if (isPowerPressed && !state.inStation) acceleration += 15;
   if (isBrakePressed) acceleration -= 28;
-
-  if (!isPowerPressed && !isBrakePressed) {
-    acceleration -= Math.sign(state.speed) * 4.2;
-  }
-
+  if (!isPowerPressed && !isBrakePressed) acceleration -= Math.sign(state.speed) * 4.2;
   acceleration -= slopeIncline * 18;
 
   const speedKmh = clamp(state.speed + acceleration * dt, 0, MAX_SPEED_KMH);
   const speedMetersPerSecond = (speedKmh * 1000) / 3600;
-  const deltaTrack = (speedMetersPerSecond / TRACK_LENGTH_UNITS) * dt;
-  const trackPos = wrap01(state.trackPos + deltaTrack);
+  const trackPos = wrap01(state.trackPos + (speedMetersPerSecond / TRACK_LENGTH_UNITS) * dt);
   const lateralForce = (Math.pow(speedMetersPerSecond, 2) / 60) * 0.08;
-
   const crosswindPhase = input.crosswindPhase + dt * 0.75;
   const crosswindForce = Math.sin(crosswindPhase) * Math.cos(crosswindPhase * 0.35);
 
@@ -81,18 +69,11 @@ export function calculateComfortFrame(
 ): ComfortFrameResult {
   let comfortDrain = 0;
 
-  if (Math.abs(acceleration) > 24) {
-    comfortDrain += Math.abs(acceleration) * 0.2;
-  }
+  if (Math.abs(acceleration) > 24) comfortDrain += Math.abs(acceleration) * 0.2;
 
   const cornerTolerance = state.installedUpgrades.suspension ? 1.5 : 0.95;
-  if (lateralForce > cornerTolerance) {
-    comfortDrain += (lateralForce - cornerTolerance) * 18;
-  }
-
-  if (Math.abs(crosswindForce) > 0.7) {
-    comfortDrain += Math.abs(crosswindForce) * 2.8;
-  }
+  if (lateralForce > cornerTolerance) comfortDrain += (lateralForce - cornerTolerance) * 18;
+  if (Math.abs(crosswindForce) > 0.7) comfortDrain += Math.abs(crosswindForce) * 2.8;
 
   const recoveryRate = state.installedUpgrades.vines ? 8.5 : 5.5;
   const comfort = comfortDrain > 0
@@ -104,8 +85,8 @@ export function calculateComfortFrame(
   const streakJustBroken = comfort < 35 && !streakBroken;
 
   if (streakJustBroken) {
-    streakBroken = true;
     streak = 1;
+    streakBroken = true;
   } else if (comfort > 75 && streakBroken) {
     streakBroken = false;
   }
@@ -119,13 +100,11 @@ export function isStationArrival(trackPos: number, station: StationData): boolea
 }
 
 export function calculateArrivalTips(comfort: number, streak: number): number {
-  const comfortBonus = Math.floor(comfort * 0.75);
-  return Math.floor((45 + comfortBonus) * streak);
+  return Math.floor((45 + Math.floor(comfort * 0.75)) * streak);
 }
 
 export function randomPassengerCount(maxPassengers: number, random = Math.random): number {
-  const availableRange = Math.max(1, maxPassengers - 7);
-  return 8 + Math.floor(random() * availableRange);
+  return 8 + Math.floor(random() * Math.max(1, maxPassengers - 7));
 }
 
 function clamp(value: number, min: number, max: number): number {

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
-import { ACHIEVEMENTS_LIST } from '../../game/constants';
 import { soundEngine } from '../../audio/SoundEngine';
+import { ACHIEVEMENTS_LIST } from '../../game/constants';
 import type { Achievement } from '../../types/game';
 
 export type ShowToast = (message: string, speaker?: string, avatar?: string, duration?: number) => void;

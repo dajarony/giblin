@@ -19,6 +19,7 @@ export function useGameInput(callbacks: GameInputCallbacks) {
   const inputRef = useRef<GameInputState>({ w: false, s: false, a: false, d: false });
   const callbacksRef = useRef(callbacks);
   callbacksRef.current = callbacks;
+
   const [isPowerActive, setPowerActive] = useState(false);
   const [isBrakeActive, setBrakeActive] = useState(false);
 
@@ -43,7 +44,6 @@ export function useGameInput(callbacks: GameInputCallbacks) {
       if (key === 's' || event.key === 'ArrowDown') setBrake(true);
       if (key === 'a' || event.key === 'ArrowLeft') inputRef.current.a = true;
       if (key === 'd' || event.key === 'ArrowRight') inputRef.current.d = true;
-
       if (key === ' ') callbacksRef.current.onBell();
       if (key === 'c') callbacksRef.current.onToggleCamera();
       if (key === 'p') callbacksRef.current.onOpenPhotoMode();
@@ -66,11 +66,5 @@ export function useGameInput(callbacks: GameInputCallbacks) {
     };
   }, [setBrake, setPower]);
 
-  return {
-    inputRef,
-    isPowerActive,
-    isBrakeActive,
-    setPower,
-    setBrake,
-  };
+  return { inputRef, isPowerActive, isBrakeActive, setPower, setBrake };
 }

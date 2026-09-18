@@ -45,6 +45,7 @@ body, html, #root {
   font-family: 'Fraunces', serif;
 }
 
+/* Custom Glass Morphism */
 .glass-panel {
   background: var(--glass-bg);
   backdrop-filter: blur(14px);
@@ -61,6 +62,7 @@ body, html, #root {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
+/* Custom Animations */
 @keyframes gentle-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.03); }
@@ -84,6 +86,7 @@ body, html, #root {
   animation: slow-float 4s infinite ease-in-out;
 }
 
+/* Hide scrollbar for tabs and clean cards */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

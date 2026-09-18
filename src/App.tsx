@@ -13,16 +13,7 @@ import { useGameController } from './app/hooks/useGameController';
 
 export default function App() {
   const game = useGameController();
-  const {
-    gameState,
-    actions,
-    input,
-    modals,
-    toast,
-    achievements,
-    screenshotData,
-    earnedTipsForArrival,
-  } = game;
+  const { gameState, actions, input, modals, toast, achievements } = game;
 
   return (
     <div className="relative w-full h-full overflow-hidden select-none bg-[#1a162b] font-['Quicksand',sans-serif]">
@@ -46,11 +37,7 @@ export default function App() {
         />
       </div>
 
-      <SubtitleToast
-        message={toast.message}
-        speaker={toast.speaker}
-        avatar={toast.avatar}
-      />
+      <SubtitleToast message={toast.message} speaker={toast.speaker} avatar={toast.avatar} />
 
       <div className="absolute bottom-0 left-0 w-full z-10 pointer-events-none">
         <BottomDashboard
@@ -87,7 +74,7 @@ export default function App() {
         onOpenWorkshop={actions.openWorkshop}
         station={STATIONS[gameState.currentStationIndex]}
         gameState={gameState}
-        earnedTips={earnedTipsForArrival}
+        earnedTips={game.earnedTipsForArrival}
       />
 
       <TimeWeatherModal
@@ -100,7 +87,7 @@ export default function App() {
       <PhotoModeModal
         isOpen={modals.photo}
         onClose={() => game.closeModal('photo')}
-        screenshotUrl={screenshotData}
+        screenshotUrl={game.screenshotData}
         gameState={gameState}
         onPostcardSaved={game.savePostcard}
       />

@@ -3,7 +3,10 @@ import type { RefObject } from 'react';
 import { WorldRenderer } from '../../game/WorldRenderer';
 import type { WeatherPreset } from '../../types/game';
 
-export function useWorld(containerRef: RefObject<HTMLDivElement | null>, initialWeather: WeatherPreset) {
+export function useWorld(
+  containerRef: RefObject<HTMLDivElement | null>,
+  initialWeather: WeatherPreset,
+) {
   const worldRef = useRef<WorldRenderer | null>(null);
   const initialWeatherRef = useRef(initialWeather);
 

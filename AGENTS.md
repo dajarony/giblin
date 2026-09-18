@@ -10,10 +10,10 @@ This file is the first-stop context for any agent or developer working in this r
 4. **Pure simulation first**: calculations that do not need Three.js or React belong in `src/game/runtime` and should be deterministic where possible.
 5. **Rendering is not game state**: Three.js objects are views of the game state, not the source of truth.
 6. **Side effects are explicit**: audio, achievements, toasts and modal changes happen at orchestration boundaries.
-7. **No hidden global state** beyond intentionally singleton infrastructure such as the existing sound engine.
-8. **Cleanup every listener/resource**: pointer/keyboard listeners, animation frames and WebGL resources must be disposed.
-9. **Prefer named domain functions** over inline magic calculations.
-10. **Do not rewrite working systems casually**. Preserve behaviour unless the task explicitly changes design/gameplay.
+7. **Cleanup every listener/resource**: pointer/keyboard listeners, animation frames and WebGL resources must be disposed.
+8. **Prefer named domain functions** over inline magic calculations.
+9. **Preserve working behaviour** unless the task explicitly changes gameplay.
+10. **Run the quality gate** before considering work finished.
 
 ## Folder responsibilities
 
@@ -29,8 +29,6 @@ This file is the first-stop context for any agent or developer working in this r
 - `src/types/` — shared domain types.
 
 ## Before committing
-
-Run:
 
 ```bash
 npm run check
