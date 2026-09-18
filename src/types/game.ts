@@ -45,6 +45,7 @@ export interface PassengerStory {
   activeRequest?: {
     text: string;
     targetSpeedMax?: number;
+    targetComfortMin?: number;
     requireBellAtStation?: string;
     completed: boolean;
     reward: number;
