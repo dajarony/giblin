@@ -188,6 +188,7 @@ export const PASSENGER_STORIES: PassengerStory[] = [
     stationDest: 'Oliver\'s Cloudworks Dock',
     activeRequest: {
       text: 'Maintain comfort above 85% for the entire trip so his delicate balance springs stay aligned.',
+      targetComfortMin: 85,
       completed: false,
       reward: 65
     }
@@ -217,6 +218,7 @@ export const PASSENGER_STORIES: PassengerStory[] = [
     stationDest: 'Saltlight Terminus',
     activeRequest: {
       text: 'Deliver without letting comfort drop below 60% on the tight sea-spray curves.',
+      targetComfortMin: 60,
       completed: false,
       reward: 70
     }
