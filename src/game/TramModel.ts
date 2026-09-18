@@ -380,7 +380,7 @@ export class TramModel {
     if (this.steamParticles) this.steamParticles.visible = true;
   }
 
-  public update(dt: number, speed: number, targetAccel: number, lateralG: number) {
+  public update(dt: number, speed: number, targetAccel: number, lateralForce: number) {
     // 1. Wheel Rotation along rails
     const speedUnits = (speed * 1000) / 3600;
     const wheelRotSpeed = (speedUnits / 0.42) * dt;
@@ -388,13 +388,45 @@ export class TramModel {
       w.rotation.x += wheelRotSpeed;
     });
 
-    // 2. Cabin Dynamic Roll & Pitch (Spring inertia)
-    const rumble = (Math.sin(performance.now() * 0.02 * (speed + 1)) * 0.012) * (speed / 45);
-    const targetRoll = -lateralG * 0.14 + rumble;
-    const targetPitch = (targetAccel / 30) * 0.07;
+    // 2. Cabin suspension presentation. The bogie stays locked to the rail while
+    // the suspended cabin leans into real left/right corner forces.
+    const speedRatio = THREE.MathUtils.clamp(speed / 65, 0, 1);
+    const suspensionDamping = this.suspensionSlot.visible ? 0.7 : 1;
+    const rumble =
+      Math.sin(performance.now() * (0.012 + speedRatio * 0.018)) *
+      0.014 *
+      speedRatio *
+      suspensionDamping;
+    const targetRoll = THREE.MathUtils.clamp(
+      -lateralForce * 0.105 * suspensionDamping + rumble,
+      -0.16,
+      0.16,
+    );
+    const targetPitch = THREE.MathUtils.clamp(
+      (targetAccel / 30) * 0.055 * suspensionDamping,
+      -0.07,
+      0.07,
+    );
+    const rideDamping = 1 - Math.exp(-7.5 * dt);
 
-    this.cabinGroup.rotation.z = THREE.MathUtils.lerp(this.cabinGroup.rotation.z, targetRoll, 0.12);
-    this.cabinGroup.rotation.x = THREE.MathUtils.lerp(this.cabinGroup.rotation.x, targetPitch, 0.12);
+    this.cabinGroup.rotation.z = THREE.MathUtils.lerp(
+      this.cabinGroup.rotation.z,
+      targetRoll,
+      rideDamping,
+    );
+    this.cabinGroup.rotation.x = THREE.MathUtils.lerp(
+      this.cabinGroup.rotation.x,
+      targetPitch,
+      rideDamping,
+    );
+
+    // A tiny vertical suspension travel sells weight without detaching the tram.
+    const targetCabinY = -2.3 + Math.abs(lateralForce) * -0.018 + rumble * 0.18;
+    this.cabinGroup.position.y = THREE.MathUtils.lerp(
+      this.cabinGroup.position.y,
+      targetCabinY,
+      1 - Math.exp(-6 * dt),
+    );
 
     // 3. Steam particle rise on whistle
     if (this.steamActive) {

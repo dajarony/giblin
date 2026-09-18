@@ -8,6 +8,7 @@ export interface MotionFrameInput {
   dt: number;
   slopeIncline: number;
   turnSeverity: number;
+  turnDirection: number;
   isPowerPressed: boolean;
   isBrakePressed: boolean;
   crosswindPhase: number;
@@ -38,6 +39,7 @@ export function calculateMotionFrame(input: MotionFrameInput): MotionFrameResult
     dt,
     slopeIncline,
     turnSeverity,
+    turnDirection,
     isPowerPressed,
     isBrakePressed,
   } = input;
@@ -77,10 +79,13 @@ export function calculateMotionFrame(input: MotionFrameInput): MotionFrameResult
     state.trackPos + (speedMetersPerSecond / TRACK_LENGTH_METERS) * dt,
   );
 
-  // Curves now matter: a straight segment is forgiving while fast bends create sway.
-  const curveMultiplier = 0.2 + clamp(turnSeverity, 0, 1) * 2;
-  const lateralForce =
+  // Signed force gives the presentation layer a real left/right lean while
+  // comfort calculations still use the magnitude.
+  const curveMultiplier = clamp(turnSeverity, 0, 1) * 2.2;
+  const lateralMagnitude =
     (Math.pow(speedMetersPerSecond, 2) / 50) * 0.11 * curveMultiplier;
+  const lateralForce =
+    turnDirection === 0 ? 0 : lateralMagnitude * Math.sign(turnDirection);
 
   return {
     acceleration,
@@ -127,8 +132,9 @@ export function calculateComfortFrame(
   }
 
   const cornerTolerance = state.installedUpgrades.suspension ? 1.45 : 0.95;
-  if (lateralForce > cornerTolerance) {
-    comfortDrain += (lateralForce - cornerTolerance) * 12;
+  const lateralMagnitude = Math.abs(lateralForce);
+  if (lateralMagnitude > cornerTolerance) {
+    comfortDrain += (lateralMagnitude - cornerTolerance) * 12;
   }
 
   if (Math.abs(crosswindForce) > 0.72) {
@@ -176,6 +182,17 @@ export function calculateTurnSeverity(currentTangentDotAhead: number): number {
   return clamp(angle / 0.12, 0, 1);
 }
 
+export function calculateTurnDirection(
+  currentX: number,
+  currentZ: number,
+  aheadX: number,
+  aheadZ: number,
+): number {
+  const crossY = currentZ * aheadX - currentX * aheadZ;
+  if (Math.abs(crossY) < 0.00001) return 0;
+  return Math.sign(crossY);
+}
+
 export function isSmoothDrivingFrame(
   speedKmh: number,
   acceleration: number,
@@ -187,7 +204,7 @@ export function isSmoothDrivingFrame(
     speedKmh > 8 &&
     comfort >= 88 &&
     Math.abs(acceleration) < 13 &&
-    lateralForce < 0.9 &&
+    Math.abs(lateralForce) < 0.9 &&
     Math.abs(crosswindForce) < 0.72
   );
 }

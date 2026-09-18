@@ -1,6 +1,7 @@
 import type { StationData } from '../../types/game';
 
-export const TRACK_LENGTH_METERS = 800;
+export { TRACK_LENGTH_METERS } from '../track/trackLayout';
+import { TRACK_LENGTH_METERS } from '../track/trackLayout';
 export const STATION_APPROACH_RADIUS_U = 0.065;
 export const STATION_STOP_RADIUS_U = 0.012;
 export const MAX_STATION_STOP_SPEED_KMH = 7;

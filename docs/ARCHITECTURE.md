@@ -28,6 +28,7 @@ WorldRenderer facade
   ├── CameraController
   ├── Weather preset application
   ├── SkyParcelSystem
+  ├── track/trackLayout (canonical rail + station route data)
   └── TramModel / scenery
 ```
 
@@ -66,6 +67,16 @@ Frame responsibilities:
 - `CameraController` — camera modes and pointer orbit lifecycle.
 - `applyWeatherPreset` — data-driven lighting/fog/ocean palettes.
 - `SkyParcelSystem` — parcel mesh lifecycle, pickup detection and animation.
+- `track/trackLayout.ts` — canonical track control points, calibrated station positions and route length. Do not duplicate those values in UI, runtime, or scenery code.
+
+## Driving presentation
+
+Gameplay physics and presentation remain separate:
+
+- `runtime/simulation.ts` computes signed lateral force, acceleration and comfort effects.
+- `TramModel` turns those values into suspended-cabin roll, pitch and subtle travel.
+- `CameraController` owns dt-aware smoothing, look-ahead and speed-based field of view.
+- Station route positions are calibrated against the same canonical spline used to render the rail.
 
 ## Cleanup discipline
 
