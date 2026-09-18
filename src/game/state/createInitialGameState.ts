@@ -1,4 +1,4 @@
-import { PASSENGER_STORIES } from '../constants';
+import { PASSENGER_STORIES, STATIONS } from '../constants';
 import type { GameState } from '../../types/game';
 
 export function createInitialGameState(): GameState {
@@ -9,10 +9,14 @@ export function createInitialGameState(): GameState {
     comfort: 100,
     streak: 1.2,
     streakBroken: false,
+    smoothDrivingSeconds: 0,
+    tripMinimumComfort: 100,
+    tripPeakSpeed: 0,
+    missedStops: 0,
     speed: 0,
     throttle: 0,
-    trackPos: 0.038,
-    currentStationIndex: 0,
+    trackPos: STATIONS[0].u,
+    currentStationIndex: 1,
     inStation: false,
     stationWaitTimer: 0,
     crosswindForce: 0,

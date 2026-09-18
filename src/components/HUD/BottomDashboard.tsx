@@ -1,6 +1,8 @@
 import React from 'react';
 import { GameState } from '../../types/game';
-import { Bell, Wind, Compass, Gauge, Coffee } from 'lucide-react';
+import { Bell, Wind, Gauge, Coffee, MapPin } from 'lucide-react';
+import { STATIONS } from '../../game/constants';
+import { distanceToStationMeters, MAX_STATION_STOP_SPEED_KMH } from '../../game/runtime/route';
 
 interface BottomDashboardProps {
   gameState: GameState;
@@ -28,6 +30,10 @@ export const BottomDashboard: React.FC<BottomDashboardProps> = ({
   const comfortPct = Math.round(gameState.comfort);
   const roundedSpeed = Math.round(gameState.speed);
   const altitude = Math.round(380 + (gameState.trackPos * 120) % 240);
+  const targetStation = STATIONS[gameState.currentStationIndex];
+  const stationDistance = gameState.inStation
+    ? 0
+    : distanceToStationMeters(gameState.trackPos, targetStation);
 
   // Determine comfort condition & color
   let comfortGradient = 'from-[#48bca2] to-[#68d89a]';
@@ -167,26 +173,40 @@ export const BottomDashboard: React.FC<BottomDashboardProps> = ({
         </div>
       </div>
 
-      {/* ── Right Card: Track Diagnostics & Weather Conditions ── */}
-      <div className="glass-panel rounded-2xl p-3.5 md:p-4 max-w-[220px] pointer-events-auto flex flex-col items-end gap-1 text-right transition-all">
+      {/* ── Right Card: Route & Track Diagnostics ── */}
+      <div className="glass-panel rounded-2xl p-3.5 md:p-4 max-w-[245px] pointer-events-auto flex flex-col items-end gap-1 text-right transition-all">
         <div className="text-[10px] uppercase font-bold tracking-wider text-[#8c7565] flex items-center gap-1">
-          <Compass className="w-3 h-3 text-[#8c7565]" />
-          Atmospheric Status
+          <MapPin className="w-3 h-3 text-[#c2593f]" />
+          {gameState.inStation ? 'Current Platform' : 'Next Stop'}
         </div>
 
-        <div className={`font-bold text-sm md:text-base ${conditionColor} leading-tight`}>
+        <div className="font-bold text-sm md:text-base text-[#382216] leading-tight">
+          {targetStation.name}
+        </div>
+
+        <div className="text-[10px] font-semibold text-[#7a6452]">
+          {gameState.inStation
+            ? 'Doors open — ready to depart'
+            : `${stationDistance} m • stop ≤ ${MAX_STATION_STOP_SPEED_KMH} km/h`}
+        </div>
+
+        <div className={`font-bold text-[11px] ${conditionColor} leading-tight mt-1`}>
           {conditionText}
         </div>
 
-        <div className="flex items-center gap-1 text-[11px] font-semibold text-[#7a6452] mt-0.5">
+        <div className="flex items-center gap-1 text-[10px] text-[#8c7565]">
           <Gauge className="w-3 h-3 text-[#d4a340]" />
-          <span>Alt: {altitude}m (Cloud Sea)</span>
+          <span>Alt {altitude}m</span>
+          <span>•</span>
+          <Wind className="w-3 h-3 text-[#3d7b88]" />
+          <span>{Math.round(Math.abs(gameState.crosswindForce) * 28)} kn</span>
         </div>
 
-        <div className="flex items-center gap-1 text-[10px] text-[#8c7565]">
-          <Wind className="w-3 h-3 text-[#3d7b88]" />
-          <span>Wind: {Math.round(Math.abs(gameState.crosswindForce) * 28)} kn</span>
-        </div>
+        {gameState.missedStops > 0 && (
+          <div className="text-[9px] font-bold text-[#c2593f] mt-0.5">
+            Missed stops: {gameState.missedStops}
+          </div>
+        )}
       </div>
     </div>
   );
