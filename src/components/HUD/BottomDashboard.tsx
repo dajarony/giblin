@@ -1,6 +1,6 @@
 import React from 'react';
 import { GameState } from '../../types/game';
-import { Bell, Wind, Compass, Gauge, Coffee, MapPin } from 'lucide-react';
+import { Bell, Wind, Gauge, Coffee, MapPin } from 'lucide-react';
 import { STATIONS } from '../../game/constants';
 import { distanceToStationMeters, MAX_STATION_STOP_SPEED_KMH } from '../../game/runtime/route';
 
