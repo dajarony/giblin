@@ -1,12 +1,13 @@
-import type { GameState, StationData } from '../../types/game';
+import type { GameState } from '../../types/game';
+import { TRACK_LENGTH_METERS } from './route';
 
-const MAX_SPEED_KMH = 65;
-const TRACK_LENGTH_UNITS = 800;
+export const MAX_SPEED_KMH = 65;
 
 export interface MotionFrameInput {
   state: GameState;
   dt: number;
   slopeIncline: number;
+  turnSeverity: number;
   isPowerPressed: boolean;
   isBrakePressed: boolean;
   crosswindPhase: number;
@@ -14,6 +15,7 @@ export interface MotionFrameInput {
 
 export interface MotionFrameResult {
   acceleration: number;
+  throttle: number;
   speedKmh: number;
   speedMetersPerSecond: number;
   trackPos: number;
@@ -27,26 +29,62 @@ export interface ComfortFrameResult {
   streak: number;
   streakBroken: boolean;
   streakJustBroken: boolean;
+  roughDriving: boolean;
 }
 
 export function calculateMotionFrame(input: MotionFrameInput): MotionFrameResult {
-  const { state, dt, slopeIncline, isPowerPressed, isBrakePressed } = input;
+  const {
+    state,
+    dt,
+    slopeIncline,
+    turnSeverity,
+    isPowerPressed,
+    isBrakePressed,
+  } = input;
 
-  let acceleration = 0;
-  if (isPowerPressed && !state.inStation) acceleration += 15;
-  if (isBrakePressed) acceleration -= 28;
-  if (!isPowerPressed && !isBrakePressed) acceleration -= Math.sign(state.speed) * 4.2;
-  acceleration -= slopeIncline * 18;
-
-  const speedKmh = clamp(state.speed + acceleration * dt, 0, MAX_SPEED_KMH);
-  const speedMetersPerSecond = (speedKmh * 1000) / 3600;
-  const trackPos = wrap01(state.trackPos + (speedMetersPerSecond / TRACK_LENGTH_UNITS) * dt);
-  const lateralForce = (Math.pow(speedMetersPerSecond, 2) / 60) * 0.08;
   const crosswindPhase = input.crosswindPhase + dt * 0.75;
   const crosswindForce = Math.sin(crosswindPhase) * Math.cos(crosswindPhase * 0.35);
 
+  if (state.inStation) {
+    return {
+      acceleration: 0,
+      throttle: 0,
+      speedKmh: 0,
+      speedMetersPerSecond: 0,
+      trackPos: state.trackPos,
+      lateralForce: 0,
+      crosswindForce,
+      crosswindPhase,
+    };
+  }
+
+  const throttle = isBrakePressed ? -1 : isPowerPressed ? 1 : 0;
+
+  let acceleration = 0;
+  if (isPowerPressed) acceleration += 14;
+  if (isBrakePressed) acceleration -= 30;
+
+  if (!isPowerPressed && !isBrakePressed) {
+    acceleration -= Math.sign(state.speed) * 3.8;
+  }
+
+  // Positive tangent Y means uphill and naturally steals acceleration.
+  acceleration -= slopeIncline * 16;
+
+  const speedKmh = clamp(state.speed + acceleration * dt, 0, MAX_SPEED_KMH);
+  const speedMetersPerSecond = (speedKmh * 1000) / 3600;
+  const trackPos = wrap01(
+    state.trackPos + (speedMetersPerSecond / TRACK_LENGTH_METERS) * dt,
+  );
+
+  // Curves now matter: a straight segment is forgiving while fast bends create sway.
+  const curveMultiplier = 0.2 + clamp(turnSeverity, 0, 1) * 2;
+  const lateralForce =
+    (Math.pow(speedMetersPerSecond, 2) / 50) * 0.11 * curveMultiplier;
+
   return {
     acceleration,
+    throttle,
     speedKmh,
     speedMetersPerSecond,
     trackPos,
@@ -69,15 +107,28 @@ export function calculateComfortFrame(
 ): ComfortFrameResult {
   let comfortDrain = 0;
 
-  if (Math.abs(acceleration) > 24) comfortDrain += Math.abs(acceleration) * 0.2;
+  // Full power is acceptable, but abrupt launches and hard braking are noticeable.
+  if (acceleration > 12) {
+    comfortDrain += (acceleration - 12) * 0.35;
+  }
 
-  const cornerTolerance = state.installedUpgrades.suspension ? 1.5 : 0.95;
-  if (lateralForce > cornerTolerance) comfortDrain += (lateralForce - cornerTolerance) * 18;
-  if (Math.abs(crosswindForce) > 0.7) comfortDrain += Math.abs(crosswindForce) * 2.8;
+  if (acceleration < -16) {
+    comfortDrain += (Math.abs(acceleration) - 16) * 0.75;
+  }
 
-  const recoveryRate = state.installedUpgrades.vines ? 8.5 : 5.5;
-  const comfort = comfortDrain > 0
-    ? clamp(state.comfort - comfortDrain * dt * 3.5, 0, 100)
+  const cornerTolerance = state.installedUpgrades.suspension ? 1.45 : 0.95;
+  if (lateralForce > cornerTolerance) {
+    comfortDrain += (lateralForce - cornerTolerance) * 12;
+  }
+
+  if (Math.abs(crosswindForce) > 0.72) {
+    comfortDrain += (Math.abs(crosswindForce) - 0.72) * 7;
+  }
+
+  const recoveryRate = state.installedUpgrades.vines ? 5.5 : 3.5;
+  const roughDriving = comfortDrain > 0.4;
+  const comfort = roughDriving
+    ? clamp(state.comfort - comfortDrain * dt * 3.2, 0, 100)
     : clamp(state.comfort + recoveryRate * dt, 0, 100);
 
   let streak = state.streak;
@@ -91,12 +142,13 @@ export function calculateComfortFrame(
     streakBroken = false;
   }
 
-  return { comfort, streak, streakBroken, streakJustBroken };
-}
-
-export function isStationArrival(trackPos: number, station: StationData): boolean {
-  const distance = Math.abs(trackPos - station.u);
-  return distance < 0.015 || (station.u > 0.96 && trackPos < 0.015);
+  return {
+    comfort,
+    streak,
+    streakBroken,
+    streakJustBroken,
+    roughDriving,
+  };
 }
 
 export function calculateArrivalTips(comfort: number, streak: number): number {
@@ -105,6 +157,29 @@ export function calculateArrivalTips(comfort: number, streak: number): number {
 
 export function randomPassengerCount(maxPassengers: number, random = Math.random): number {
   return 8 + Math.floor(random() * Math.max(1, maxPassengers - 7));
+}
+
+export function calculateTurnSeverity(currentTangentDotAhead: number): number {
+  // 1 = same direction, lower values mean a sharper bend.
+  const clampedDot = clamp(currentTangentDotAhead, -1, 1);
+  const angle = Math.acos(clampedDot);
+  return clamp(angle / 0.12, 0, 1);
+}
+
+export function isSmoothDrivingFrame(
+  speedKmh: number,
+  acceleration: number,
+  lateralForce: number,
+  crosswindForce: number,
+  comfort: number,
+): boolean {
+  return (
+    speedKmh > 8 &&
+    comfort >= 88 &&
+    Math.abs(acceleration) < 13 &&
+    lateralForce < 0.9 &&
+    Math.abs(crosswindForce) < 0.72
+  );
 }
 
 function clamp(value: number, min: number, max: number): number {
