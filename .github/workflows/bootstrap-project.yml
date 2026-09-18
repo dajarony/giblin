@@ -27,7 +27,12 @@ jobs:
           cat .bootstrap/project.part* | base64 --decode > /tmp/gibli-refactor.tar.gz
           tar -xzf /tmp/gibli-refactor.tar.gz -C .
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap-project.yml
+
+          # GitHub Actions tokens cannot create/update workflow files.
+          # Keep the already-approved workflow files exactly as they are in HEAD;
+          # they are cleaned up separately through the GitHub connector.
+          git checkout HEAD -- .github/workflows/ci.yml
+          git checkout HEAD -- .github/workflows/bootstrap-project.yml
 
       - name: Setup Node
         uses: actions/setup-node@v4
