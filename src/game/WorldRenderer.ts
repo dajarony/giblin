@@ -4,6 +4,7 @@ import type { CameraMode, WeatherPreset } from '../types/game';
 import { CameraController } from './world/CameraController';
 import { SkyParcelSystem } from './world/SkyParcelSystem';
 import { applyWeatherPreset as applyWeather } from './world/applyWeatherPreset';
+import { TRACK_CONTROL_POINTS } from './track/trackLayout';
 
 export class WorldRenderer {
   public scene: THREE.Scene;
@@ -81,19 +82,9 @@ export class WorldRenderer {
 
     // ── 2. Track Spline Definition ──
     // Closed continuous scenic loop through all 4 key stations
-    const trackPoints = [
-      new THREE.Vector3(-150, 24, -30),   // [u ≈ 0.05] Station 1: Saltlight Terminus
-      new THREE.Vector3(-100, 38, -95),   // Pine Ridge Ascent
-      new THREE.Vector3(-20, 58, -145),   // High Cloud Arch Bridge
-      new THREE.Vector3(50, 48, -125),    // [u ≈ 0.32] Station 2: High Pines Sky Bridge
-      new THREE.Vector3(120, 36, -75),    // East Coast Descent
-      new THREE.Vector3(145, 22, 10),     // Coastal Shallows Turn
-      new THREE.Vector3(140, 16, 65),     // [u ≈ 0.58] Station 3: Mango Tide Pier
-      new THREE.Vector3(85, 12, 120),     // Low Sea-Spray Viaduct
-      new THREE.Vector3(0, 16, 135),      // [u ≈ 0.84] Station 4: Oliver's Cloudworks
-      new THREE.Vector3(-90, 20, 95),     // Sunset Bay Turn
-      new THREE.Vector3(-145, 22, 35)     // Return to Saltlight Valley
-    ];
+    const trackPoints = TRACK_CONTROL_POINTS.map(
+      ([x, y, z]) => new THREE.Vector3(x, y, z),
+    );
 
     this.trackCurve = new THREE.CatmullRomCurve3(trackPoints, true, 'catmullrom', 0.22);
     this.trackGroup = new THREE.Group();
