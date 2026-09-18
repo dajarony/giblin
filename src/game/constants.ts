@@ -4,7 +4,7 @@ export const STATIONS: StationData[] = [
   {
     id: 'saltlight',
     name: 'Saltlight Terminus',
-    u: 0.05,
+    u: 0.0,
     desc: 'Historic coastal lighthouse arches and cliffside terracotta villas.',
     region: 'South Cliff Bay',
     tagline: 'Where the sea breeze meets the mountain rail',
@@ -14,7 +14,7 @@ export const STATIONS: StationData[] = [
   {
     id: 'highpines',
     name: 'High Pines Sky Bridge',
-    u: 0.32,
+    u: 0.2829,
     desc: 'Breathtaking viaduct spanning across high alpine pines and mist canyons.',
     region: 'The Whispering Spire',
     tagline: 'Perched 500 meters above the morning cloud sea',
@@ -24,7 +24,7 @@ export const STATIONS: StationData[] = [
   {
     id: 'mangotide',
     name: 'Mango Tide Pier',
-    u: 0.58,
+    u: 0.5423,
     desc: 'Sunny terracotta terraces, citrus groves, and warm shallow tide pools.',
     region: 'East Coral Shallows',
     tagline: 'Fragrant blossoms & bustling fish markets',
@@ -34,7 +34,7 @@ export const STATIONS: StationData[] = [
   {
     id: 'cloudworks',
     name: 'Oliver\'s Cloudworks Dock',
-    u: 0.84,
+    u: 0.7259,
     desc: 'Floating workshop hangar filled with brass clockwork, airships & cozy hearths.',
     region: 'North Foundry Isles',
     tagline: 'Home of aerial tram engineering & warm chamomile tea',
