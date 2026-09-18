@@ -81,10 +81,11 @@ export function calculateMotionFrame(input: MotionFrameInput): MotionFrameResult
 
   // Signed force gives the presentation layer a real left/right lean while
   // comfort calculations still use the magnitude.
-  const curveMultiplier = 0.2 + clamp(turnSeverity, 0, 1) * 2;
+  const curveMultiplier = clamp(turnSeverity, 0, 1) * 2.2;
   const lateralMagnitude =
     (Math.pow(speedMetersPerSecond, 2) / 50) * 0.11 * curveMultiplier;
-  const lateralForce = lateralMagnitude * Math.sign(turnDirection || 1);
+  const lateralForce =
+    turnDirection === 0 ? 0 : lateralMagnitude * Math.sign(turnDirection);
 
   return {
     acceleration,
