@@ -75,10 +75,14 @@ export interface GameState {
   comfort: number; // 0 to 100
   streak: number; // 1.0 to 4.0
   streakBroken: boolean;
+  smoothDrivingSeconds: number;
+  tripMinimumComfort: number;
+  tripPeakSpeed: number;
+  missedStops: number;
   speed: number; // km/h
   throttle: number; // -1 to 1
   trackPos: number; // 0.0 to 1.0
-  currentStationIndex: number;
+  currentStationIndex: number; // next station while driving, current platform while stopped
   inStation: boolean;
   stationWaitTimer: number;
   crosswindForce: number;
