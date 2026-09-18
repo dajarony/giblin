@@ -602,6 +602,10 @@ export class WorldRenderer {
     tramTangent: THREE.Vector3,
     tramQuat: THREE.Quaternion,
     time: number,
+    dt: number,
+    speedKmh: number,
+    acceleration: number,
+    lateralForce: number,
   ) {
     this.cameraController.update(
       cameraMode,
@@ -610,6 +614,10 @@ export class WorldRenderer {
       tramTangent,
       tramQuat,
       time,
+      dt,
+      speedKmh,
+      acceleration,
+      lateralForce,
     );
   }
 
