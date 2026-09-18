@@ -105,6 +105,16 @@ export function calculateComfortFrame(
   lateralForce: number,
   crosswindForce: number,
 ): ComfortFrameResult {
+  if (state.inStation) {
+    return {
+      comfort: state.comfort,
+      streak: state.streak,
+      streakBroken: state.streakBroken,
+      streakJustBroken: false,
+      roughDriving: false,
+    };
+  }
+
   let comfortDrain = 0;
 
   // Full power is acceptable, but abrupt launches and hard braking are noticeable.
