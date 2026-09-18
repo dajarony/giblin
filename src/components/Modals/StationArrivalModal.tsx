@@ -97,6 +97,26 @@ export const StationArrivalModal: React.FC<StationArrivalModalProps> = ({
             </div>
           </div>
 
+          {/* Trip Quality Summary */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-[#f2e8cf]/70 rounded-xl px-3 py-2 border border-black/5">
+              <div className="text-[9px] uppercase tracking-wider font-bold text-[#8c7565]">
+                Trip minimum comfort
+              </div>
+              <div className="font-comfortaa font-bold text-sm text-[#1e4738]">
+                {Math.round(gameState.tripMinimumComfort)}%
+              </div>
+            </div>
+            <div className="bg-[#f2e8cf]/70 rounded-xl px-3 py-2 border border-black/5 text-right">
+              <div className="text-[9px] uppercase tracking-wider font-bold text-[#8c7565]">
+                Peak speed
+              </div>
+              <div className="font-comfortaa font-bold text-sm text-[#382216]">
+                {Math.round(gameState.tripPeakSpeed)} km/h
+              </div>
+            </div>
+          </div>
+
           {/* Passenger Turnover Stats */}
           <div className="flex justify-between items-center px-2 text-xs font-semibold text-[#7a6452]">
             <div className="flex items-center gap-1.5">
